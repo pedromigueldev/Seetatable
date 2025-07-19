@@ -4,7 +4,6 @@
 
 int create_file(char* file_name, char** contents, size_t size) {
     FILE *file_handle;
-    long file_size;
 
     file_handle = fopen(file_name, "w+");
     size_t witten = fwrite(*contents, sizeof(char), size, file_handle);
@@ -47,10 +46,13 @@ size_t read_file(char* file_name, char** file_buffer) {
 
 int main (void) {
     char* file_buffer = NULL;
-    size_t size = read_file("data", &file_buffer);
+    size_t file_buffer_size = read_file("data", &file_buffer);
 
-    create_file("datato", &file_buffer, size);
+
+
+
+
+    create_file("datato", &file_buffer, file_buffer_size);
     printf("%s", file_buffer);
-
     return 0;
 }
