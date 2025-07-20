@@ -1,3 +1,6 @@
+#include <asm-generic/errno.h>
+#include <errno.h>
+#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +46,35 @@ size_t read_file(char* file_name, char** file_buffer) {
     fclose(file_handle);
     return file_size;
 }
+
+size_t table_biggest_word_size (char* table_raw, size_t table_raw_size) {
+    int current_word_size = 0;
+    int biggest_word_size = 0;
+    int index = 0;
+
+    if (table_raw == NULL) {
+        raise(EADDRNOTAVAIL);
+        return -1;
+    }
+
+    for (int i = 0; i < table_raw_size; i++) {
+        if (table_raw[i] != ',' && table_raw[i] != '\n' && table_raw[i] != EOF)
+            current_word_size += 1;
+
+        if (table_raw[i] == ',') {
+            if(current_word_size >= biggest_word_size) {
+                biggest_word_size = current_word_size;
+                index = i - current_word_size;
+            }
+            current_word_size = 0;
+        }
+    }
+
+    return biggest_word_size;
+}
+
+size_t table_biggest_wordline_num (char* table, char* tbwln);
+size_t table_create_file (char* table, char* table_name);
 
 int main (void) {
     char* file_buffer = NULL;
