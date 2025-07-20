@@ -47,12 +47,68 @@ size_t read_file(char* file_name, char** file_buffer) {
 int main (void) {
     char* file_buffer = NULL;
     size_t file_buffer_size = read_file("data", &file_buffer);
+    if (file_buffer_size == -1)
+        return 1;
 
+    char* table;
+    int index;
+    int current_word = 0;
+    int current_line = 0;
+    int biggest_word_size = 0;
+    int biggest_line_size = 0;
+    int line_count = 0;
+    for (int i = 0; i < file_buffer_size; i++) {
+        current_line++;
+        if (file_buffer[i] == '\n') {
+            line_count++;
+            if (current_line > biggest_line_size) {
+                biggest_line_size = current_line - 1;
+            }
+            current_line = 0;
+        }
 
+        if (file_buffer[i] != ',' && file_buffer[i] != '\n' && file_buffer[i] != EOF && file_buffer[i] != ',') {
+            current_word += 1;
+        } else if (file_buffer[i] == ',') {
+            if(current_word >= biggest_word_size) {
+                biggest_word_size = current_word;
+                index = i - current_word;
+            }
+            current_word = 0;
+        }
+    }
 
+    int in_word_line_count = 0;
+    int out_word_line_count = 0;
+    for (int i = 0; i < file_buffer_size; i++) {
+        if (file_buffer[i] != ',' && file_buffer[i] != '\n' && file_buffer[i] != EOF && file_buffer[i] != ',') {
+            current_word += 1;
+            printf("%c", file_buffer[i]);
+        } else if (file_buffer[i] == ',') {
+            in_word_line_count++;
+            out_word_line_count++;
+            for (int j = 0; j < biggest_word_size - (current_word) ; j++) {
+                printf(" ");
+            }
+            printf("|");
+            current_word = 0;
+        } else if (file_buffer[i] == '\n') {
+            for (int j = 0; j < biggest_word_size - (current_word) ; j++) {
+                printf(" ");
+            }
+            printf("|");
+        }
 
+        if (file_buffer[i] == '\n') {
+            printf("%c", file_buffer[i]);
+            for (int line = 0; line < (biggest_word_size * (in_word_line_count + 1) + in_word_line_count); line++) {
+                printf("-");
+            }
+            printf("\n");
+            in_word_line_count = 0;
+        }
+    }
 
     create_file("datato", &file_buffer, file_buffer_size);
-    printf("%s", file_buffer);
     return 0;
 }
