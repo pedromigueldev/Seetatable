@@ -28,7 +28,6 @@ size_t table_biggest_word_size (char* table_raw, size_t table_raw_size) {
         if (table_raw[i] == ',') {
             if(current_word_size >= biggest_word_size) {
                 biggest_word_size = current_word_size;
-                index = i - current_word_size;
             }
             current_word_size = 0;
         }
@@ -80,13 +79,16 @@ size_t table_line_number(char* table_raw, size_t table_raw_size) {
 int table_transform_data(TableAscii* table, char* raw_table) {
     int raw_index = 0;
     int current_word_size = 0;
-
+    int word_count = 0;
     for (int i = 0; i < table->size; i++) {
-        if (raw_table[raw_index] != ',' && raw_table[raw_index] != '\n')
+        if (raw_table[raw_index] != ',' && raw_table[raw_index] != '\n') {
             table->buffer[i] = raw_table[raw_index];
+            current_word_size++;
+        }
 
         if (raw_table[raw_index] == ',') {
-            int remain = table->biggest_word - current_word_size+1;
+            word_count++;
+            int remain = table->biggest_word - current_word_size;
             for (int k = 0; k < remain; k++) {
                 table->buffer[i + k] = ' ';
             }
@@ -95,19 +97,26 @@ int table_transform_data(TableAscii* table, char* raw_table) {
             current_word_size = 0;
         }
         if (raw_table[raw_index] == '\n') {
-            int remain = table->biggest_word - current_word_size+1;
+            int remain = table->biggest_word - current_word_size;
             for (int k = 0; k < remain; k++) {
                 table->buffer[i + k] = ' ';
             }
             i += remain;
             table->buffer[i] = '|';
+
+            while (word_count + 1 < table->num_words) {
+                for (int k = 0; k < table->biggest_word; k++) {
+                    table->buffer[i + k + 1] = ' ';
+                }
+                word_count++;
+                i += table->biggest_word+1;
+                table->buffer[i] = '|';
+            }
             i++;
             table->buffer[i] = '\n';
             current_word_size = 0;
-            raw_index++;
-            continue;
+            word_count = 0;
         }
-        current_word_size++;
         raw_index++;
     }
     return 0;

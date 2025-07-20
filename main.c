@@ -1,9 +1,8 @@
 #include <asm-generic/errno.h>
-#include <errno.h>
-#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "./table.c"
 
 int create_file(char* file_name, char** contents, size_t size) {
     FILE *file_handle;
@@ -19,7 +18,6 @@ int create_file(char* file_name, char** contents, size_t size) {
     fclose(file_handle);
     return 0;
 }
-
 size_t read_file(char* file_name, char** file_buffer) {
     FILE *file_handle;
     size_t file_size;
@@ -47,69 +45,30 @@ size_t read_file(char* file_name, char** file_buffer) {
     return file_size;
 }
 
-size_t table_biggest_word_size (char* table_raw, size_t table_raw_size) {
-    int current_word_size = 0;
-    int biggest_word_size = 0;
-    int index = 0;
-
-    if (table_raw == NULL) {
-        raise(EADDRNOTAVAIL);
-        return -1;
-    }
-
-    for (int i = 0; i < table_raw_size; i++) {
-        if (table_raw[i] != ',' && table_raw[i] != '\n' && table_raw[i] != EOF)
-            current_word_size += 1;
-
-        if (table_raw[i] == ',') {
-            if(current_word_size >= biggest_word_size) {
-                biggest_word_size = current_word_size;
-                index = i - current_word_size;
-            }
-            current_word_size = 0;
-        }
-    }
-
-    return biggest_word_size;
-}
-size_t table_biggest_wordline_num (char* table_raw, size_t table_raw_size) {
-    int wprln = 0;
-    int current_count = 0;
-
-    if (table_raw == NULL) {
-        raise(EADDRNOTAVAIL);
-        return -1;
-    }
-
-    for (int i = 0; i < table_raw_size; i++) {
-        if (table_raw[i] == '\n') {
-            if (current_count > wprln) {
-                wprln = current_count;
-            }
-            current_count = 0;
-            continue;
-        }
-
-        if (table_raw[i] == ',') {
-            current_count++;
-        }
-    }
-
-    return wprln + 1;
-};
-size_t table_create_file (char* table, char* table_name);
-
 int main (void) {
     char* raw_table = NULL;
     size_t raw_table_size = read_file("data", &raw_table);
+    TableAscii table = {0};
     if (raw_table_size == -1)
         return 1;
 
-    printf("biggest word size: %lu\n", table_biggest_word_size(raw_table, raw_table_size));
-    printf("biggest worline: %lu\n", table_biggest_wordline_num(raw_table, raw_table_size));
+    size_t line_number =  table_line_number(raw_table, raw_table_size);
+    size_t biggest_word = table_biggest_word_size(raw_table, raw_table_size);
+    size_t biggest_word_line = table_biggest_wordline_num(raw_table, raw_table_size);
+
+    int l = ((line_number * 2) + 1);
+    size_t chars = l * (biggest_word * biggest_word_line);
+    table = (TableAscii) {
+        .buffer = malloc(sizeof(char) * chars),
+        .size = chars,
+        .biggest_word = biggest_word,
+        .num_words = biggest_word_line
+    };
+
+    table_transform_data(&table, raw_table);
+    printf("table:\n%s\n", table.buffer);
 
     return 0;
-    char* table;
     int index;
     int current_word = 0;
     int current_line = 0;
