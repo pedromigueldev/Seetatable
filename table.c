@@ -7,7 +7,7 @@ typedef struct {
     size_t size;
     char* buffer;
     size_t biggest_word;
-    size_t num_words
+    size_t num_words;
 } TableAscii;
 
 size_t table_create_file (char* table, char* table_name);

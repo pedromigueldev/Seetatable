@@ -11,6 +11,7 @@
       "cwd": "$ZED_WORKTREE_ROOT"
     },
     "program": "main",
+    "args": ["data", "data2"],
     "request": "launch",
     "adapter": "CodeLLDB"
   }
