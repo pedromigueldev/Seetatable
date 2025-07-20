@@ -72,16 +72,43 @@ size_t table_biggest_word_size (char* table_raw, size_t table_raw_size) {
 
     return biggest_word_size;
 }
+size_t table_biggest_wordline_num (char* table_raw, size_t table_raw_size) {
+    int wprln = 0;
+    int current_count = 0;
 
-size_t table_biggest_wordline_num (char* table, char* tbwln);
+    if (table_raw == NULL) {
+        raise(EADDRNOTAVAIL);
+        return -1;
+    }
+
+    for (int i = 0; i < table_raw_size; i++) {
+        if (table_raw[i] == '\n') {
+            if (current_count > wprln) {
+                wprln = current_count;
+            }
+            current_count = 0;
+            continue;
+        }
+
+        if (table_raw[i] == ',') {
+            current_count++;
+        }
+    }
+
+    return wprln + 1;
+};
 size_t table_create_file (char* table, char* table_name);
 
 int main (void) {
-    char* file_buffer = NULL;
-    size_t file_buffer_size = read_file("data", &file_buffer);
-    if (file_buffer_size == -1)
+    char* raw_table = NULL;
+    size_t raw_table_size = read_file("data", &raw_table);
+    if (raw_table_size == -1)
         return 1;
 
+    printf("biggest word size: %lu\n", table_biggest_word_size(raw_table, raw_table_size));
+    printf("biggest worline: %lu\n", table_biggest_wordline_num(raw_table, raw_table_size));
+
+    return 0;
     char* table;
     int index;
     int current_word = 0;
@@ -89,9 +116,9 @@ int main (void) {
     int biggest_word_size = 0;
     int biggest_line_size = 0;
     int line_count = 0;
-    for (int i = 0; i < file_buffer_size; i++) {
+    for (int i = 0; i < raw_table_size; i++) {
         current_line++;
-        if (file_buffer[i] == '\n') {
+        if (raw_table[i] == '\n') {
             line_count++;
             if (current_line > biggest_line_size) {
                 biggest_line_size = current_line - 1;
@@ -99,9 +126,9 @@ int main (void) {
             current_line = 0;
         }
 
-        if (file_buffer[i] != ',' && file_buffer[i] != '\n' && file_buffer[i] != EOF && file_buffer[i] != ',') {
+        if (raw_table[i] != ',' && raw_table[i] != '\n' && raw_table[i] != EOF && raw_table[i] != ',') {
             current_word += 1;
-        } else if (file_buffer[i] == ',') {
+        } else if (raw_table[i] == ',') {
             if(current_word >= biggest_word_size) {
                 biggest_word_size = current_word;
                 index = i - current_word;
@@ -112,11 +139,11 @@ int main (void) {
 
     int in_word_line_count = 0;
     int out_word_line_count = 0;
-    for (int i = 0; i < file_buffer_size; i++) {
-        if (file_buffer[i] != ',' && file_buffer[i] != '\n' && file_buffer[i] != EOF && file_buffer[i] != ',') {
+    for (int i = 0; i < raw_table_size; i++) {
+        if (raw_table[i] != ',' && raw_table[i] != '\n' && raw_table[i] != EOF && raw_table[i] != ',') {
             current_word += 1;
-            printf("%c", file_buffer[i]);
-        } else if (file_buffer[i] == ',') {
+            printf("%c", raw_table[i]);
+        } else if (raw_table[i] == ',') {
             in_word_line_count++;
             out_word_line_count++;
             for (int j = 0; j < biggest_word_size - (current_word) ; j++) {
@@ -124,15 +151,15 @@ int main (void) {
             }
             printf("|");
             current_word = 0;
-        } else if (file_buffer[i] == '\n') {
+        } else if (raw_table[i] == '\n') {
             for (int j = 0; j < biggest_word_size - (current_word) ; j++) {
                 printf(" ");
             }
             printf("|");
         }
 
-        if (file_buffer[i] == '\n') {
-            printf("%c", file_buffer[i]);
+        if (raw_table[i] == '\n') {
+            printf("%c", raw_table[i]);
             for (int line = 0; line < (biggest_word_size * (in_word_line_count + 1) + in_word_line_count); line++) {
                 printf("-");
             }
@@ -141,6 +168,6 @@ int main (void) {
         }
     }
 
-    create_file("datato", &file_buffer, file_buffer_size);
+    create_file("datato", &raw_table, raw_table_size);
     return 0;
 }
