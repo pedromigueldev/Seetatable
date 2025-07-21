@@ -5,5 +5,5 @@ transforms a csv comma separated input into a simple ascii table.
 
 ```bash
     make
-    ./main source destination
+    ./Seetable source destination
 ```
